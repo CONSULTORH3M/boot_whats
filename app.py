@@ -19,7 +19,15 @@ mensagens = {
         "ou com nosso Suporte Técnico no *(55) 9119 4370* com a (Bruna). "
         "Caso não queira mais receber essa forma de contato, envie *SAIR*."
     ),
-    "PROSPECTS QUE ESTAMOS BUSCANDO UM CONTATO": (
+    "CLIENTE OFICINA MECANICA - ORDEM DE SERVIÇO": (
+        ", {nome}, da empresa {empresa}, "
+        "Como está o uso do *Sistema EvoluTI*, Como está o controle das *Ordens de Serviço*? Tudo certo? Algo a relatar? "
+        "Vocês sabiam que a tela de *Consulta das OS*, disponibiliza várias alternativas, para Gerenciar oque acontece no dia a dia de sua Oficina? "
+        "Entrem em contato conosco, para saber mais sobre essas funções. Qualquer coisa, pode falar comigo, o Glaucio, "
+        "ou com nosso Suporte Técnico no *(55) 9119 4370* com a (Bruna). "
+        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
+    ),
+    "PROSPECTS BUSCANDO DISPERTAR INTERESSE": (
         ", {nome}, da empresa {empresa}, "
         "Nós da *GDI Informática* trabalhamos com um *Sistema de Gestão: Simples e Prático*. "
         "Montamos a mensalidade baseada nas ferramentas que realmente for utilizar. "
@@ -64,24 +72,24 @@ mensagens = {
     "APLICATIVO PROPRIO - EVOLUTI PLAY - BANRISUL": (
         ", {nome}, da empresa {empresa}, "
         "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando Banrisul, Sicredi e Stone, "
-        "que atendendem às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com as maquininhas. "
+        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando a do*Banrisul*, "
+        "que atendende às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com ela. "
         "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
         "Caso não queira mais receber essa forma de contato, envie *SAIR*."
     ),
      "APLICATIVO PROPRIO - EVOLUTI PLAY - SICREDI": (
         ", {nome}, da empresa {empresa}, "
         "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando Banrisul, Sicredi e Stone, "
-        "que atendendem às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com as maquininhas. "
+        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando a do *Sicredi*, "
+        "que atendende às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com ela. "
         "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
         "Caso não queira mais receber essa forma de contato, envie *SAIR*."
     ),
      "APLICATIVO PROPRIO - EVOLUTI PLAY - STONE": (
         ", {nome}, da empresa {empresa}, "
         "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando Banrisul, Sicredi e Stone, "
-        "que atendendem às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com as maquininhas. "
+        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando a da *Stone*, "
+        "que atendende às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico ela. "
         "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
         "Caso não queira mais receber essa forma de contato, envie *SAIR*."
     ),
@@ -129,11 +137,18 @@ mensagens = {
         "Além de todas as opções que já utiliza, estamos sempre à disposição para ajudar. Caso precise de suporte basta falar com o nosso Whats no *(55) 9119 4370* (Bruna). "
         "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
     ),
-    "CLIENTES DO MEI - FERRAMENTAS SEM DOCS FISCAIS": (
+    "CLIENTES DO MEI - Fidelizando o uso do Sistema": (
         ", {nome}, da empresa {empresa}, "
         "Como está o uso do *Sistema EvoluTI*, tudo certo? "
         "Além das opções que já utiliza, temos ferramentas para a parte fiscal, incluindo emissão de NF-e e o Cupom Eletrônico. e Agora com essa questão da Ligação com as maquininhas de Cartões.  "
         "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). Se não quiser mais receber esse tipo de contato, envie *SAIR*."
+    ),
+    "CLIENTES DO MEI - AGORA TEMOS A NFE PARA MEI": (
+        ", {nome}, da empresa {empresa}, "
+        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
+        "Além das opções e ferramentas que você já utiliza, temos agora a Emissão da *Nota Eletrônica* para o Mei, direto no nosso sistema, sem precisar usar aquele direto no Site do Governo, "
+        "Pois o nosso e muito mais simples e fácil de usar. Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
+         "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
     ),
 }
 
