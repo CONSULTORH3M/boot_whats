@@ -114,6 +114,15 @@ mensagens = {
         "Mas estamos prontos para ajudar, caso precisar de algo. Basta falar com o nosso suporte no *(55) 9119 4370* (Bruna). "
         "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
     ),
+    "CLIENTES INADINPLENTES": (
+        ", {nome}, da empresa {empresa}, "
+        "Como está o uso do *Sistema EvoluTI*, tudo certo? Algo que deseja mencionar? "
+        "Sempre estamos prontos para lhe atender e ajudar no que for possível, referente a utilização do sistema EvoluTI, E Caso precise de suporte, basta falar com o nosso Whats no *(55) 9119 4370* (Bruna). "
+        "Mas Gostaríamos de salientar aqui, a importância de manter sua mensalidade em dia, que vence sempre *Dia 05*. "
+        "Evite Transtornos para sua empresa, pois o não pagamento em DIA, ocasiona o *Bloqueio do Sistema* de forma Automática. " 
+        "E você sabia que o pagamento no *dia 05 de cada mês*, possibilita um desconto de *2%* sobre o valor? "
+        "Não deixe para depois, solicite o boleto aqui nesse Whats *(55) 9119 4370*, caso não tenha recebido ainda."
+    ),
     "CLIENTES QUE USAM TODAS AS FERRAMENTAS": (
         ", {nome}, da empresa {empresa}, "
         "Como está o uso do *Sistema EvoluTI*, tudo certo? "
@@ -128,15 +137,26 @@ mensagens = {
     ),
 }
 
+import tkinter as tk  # caso ainda não tenha importado
+from tkinter import PhotoImage
+
+# ...
+
 class WhatsAppSenderApp:
     def __init__(self, root):
         self.root = root
+
+        # ÍCONE PERSONALIZADO
+        icon = PhotoImage(file="icone.png")  # ou "icone.ico"
+        self.root.iconphoto(False, icon)
+
         self.drive = None
-        self.root.title("Envio Automático WhatsApp v5")
+        self.root.title("Envio Automático WhatsApp vfinal")
         self.root.geometry("880x680+100+5")
+
         style = ttk.Style()
-        style.configure("Treeview", font=("Helvetica", 8, "bold"))  # <-- Aumenta fonte e coloca negrito
-        style.configure("Treeview.Heading", font=("Helvetica", 10, "bold"))  # Cabeçalhos também
+        style.configure("Treeview", font=("Helvetica", 8, "bold"))
+        style.configure("Treeview.Heading", font=("Helvetica", 10, "bold"))
 
     
 
@@ -203,7 +223,7 @@ class WhatsAppSenderApp:
             columns=('Telefone', 'Mensagem'),
             show='headings'
         )
-        self.tree.heading('Telefone', text='Telefone')
+        self.tree.heading('Telefone', text='Telefones')
         self.tree.heading('Mensagem', text='Mensagens a serem Disparadas')
         self.tree.column('Telefone', width=80)
         self.tree.column('Mensagem', width=1200)
@@ -220,18 +240,31 @@ class WhatsAppSenderApp:
             bg="#b34b00",  # azul forte
             fg="white"
         ).pack(side='left', padx=5)
+        
 
+        # BOTAO EXCLUIR COM A FUNÇAO DE USAR A TECLA DELETE
         tk.Button(
             frame_actions,
-            text="EXCLUIR",
+            text="EXCLUIR - Delete",
             command=self.delete_message,
-            bg="#dc3545",  # vermelho
+            bg="#dc3545",
             fg="white"
         ).pack(side='left', padx=5)
 
+        # atalho Delete
+        frame_actions.bind_all("<Delete>", lambda event: self.delete_message())         
+        
+        #tk.Button(
+            #frame_actions,
+            #text="EXCLUIR",
+            #command=self.delete_message,
+            #bg="#dc3545",  # vermelho
+            #fg="white"
+        #).pack(side='left', padx=5)
+
         tk.Button(
             frame_actions,
-            text="Limpar Mensagem",
+            text="LIMPAR Mensagens",
             command=self.cancel_operation,
             bg="#ffc107",  # amarelo
             fg="black"
@@ -248,7 +281,7 @@ class WhatsAppSenderApp:
         # Botão ENVIAR agora chama iniciar_envio_thread
         tk.Button(
             frame_actions,
-            text="Disparar Mensagens",
+            text="DISPARAR Mensagens",
             command=self.iniciar_envio_thread,
             bg="#28a745",  # verde
             fg="white"
@@ -256,7 +289,7 @@ class WhatsAppSenderApp:
 
         tk.Button(
             frame_actions,
-            text="Pausar Envio",
+            text="PAUSAR Envio",
             command=self.pausar_envio,
             bg="#ff8000",  # Laranja
             fg="white"
@@ -264,7 +297,7 @@ class WhatsAppSenderApp:
 
         tk.Button(
             frame_actions,
-            text="FECHAR",
+            text="Fechar",
             command=root.destroy,  # ou self.root.destroy se root estiver como self.root
             bg="#6c757d",  # cinza
             fg="white"
@@ -419,7 +452,7 @@ class WhatsAppSenderApp:
         except Exception as e:
             print(f"Erro ao enviar para {cliente['telefone']}: {e}")
             
-
+# INICIAR O ENVIOU DAS MENSAGENS....
     def iniciar_envio_thread(self):
         if self.enviando:
             self.label_info.config(text="O envio já está em andamento.")
@@ -429,7 +462,9 @@ class WhatsAppSenderApp:
         self.envio_ativo.set()
 
         def enviar_mensagens():
-            for item in self.tree.get_children():
+            itens = self.tree.get_children()
+
+            for i, item in enumerate(itens):
                 if not self.envio_ativo.is_set():
                     break
 
@@ -443,18 +478,24 @@ class WhatsAppSenderApp:
                 total_restante = len(self.tree.get_children())
                 self.label_info.config(text=f"Mensagens restantes a DISPARAR: {total_restante}")
 
-                time.sleep(110)  # Espera 2 minutos entre mensagens
+        # Só espera se ainda tiver mais mensagens após esta
+                if i < len(itens) - 1:
+                    time.sleep(110)
 
-            # Código final
-        self.enviando = False
-        self.label_info.config(text="Envio concluído.")
+            self.enviando = False
 
-# Toca um som padrão do Windows (como beep)
-        
-        winsound.Beep(frequency=1000, duration=800)  # frequência em Hz, duração em ms
+    # Agendar a exibição da mensagem e o som na thread principal
+            self.root.after(0, self.finalizar_envio)
 
         thread = threading.Thread(target=enviar_mensagens, daemon=True)
         thread.start()
+
+    def finalizar_envio(self):
+        self.label_info.config(text="Envio concluído.")
+        
+        # SOM NO ENVIOU TOTAL DAS MENSAGENS
+        winsound.Beep(frequency=1000, duration=800)  # frequência em Hz, duração em ms
+        messagebox.showinfo("Finalizado", "Todas as Mensagens foram Enviadas com Sucesso.")
 
 
     def parar_envio(self):
