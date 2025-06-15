@@ -1,523 +1,320 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-import pandas as pd
-import webbrowser
 import pyautogui
 import time
-import threading
-import re
+import webbrowser
 from urllib.parse import quote
-import os
-import winsound
+import openpyxl
+import tkinter as tk
+from tkinter import ttk
+import threading
 
-#Dicionário de templates de mensagens (permanece igual ao seu código atual)
-mensagens = {
-    "CLIENTE EM TREINAMENTO - INICIANDO O USO": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*? Tudo certo? Algo a relatar? "
-        "Prestamos suporte técnico rápido e ativo. Qualquer coisa, pode entrar em contato comigo, o Glaucio, "
-        "ou com nosso Suporte Técnico no *(55) 9119 4370* com a (Bruna). "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-    "CLIENTE OFICINA MECANICA - ORDEM DE SERVIÇO": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, Como está o controle das *Ordens de Serviço*? Tudo certo? Algo a relatar? "
-        "Vocês sabiam que a tela de *Consulta das OS*, disponibiliza várias alternativas, para Gerenciar oque acontece no dia a dia de sua Oficina? "
-        "Entrem em contato conosco, para saber mais sobre essas funções. Qualquer coisa, pode falar comigo, o Glaucio, "
-        "ou com nosso Suporte Técnico no *(55) 9119 4370* com a (Bruna). "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-    "PROSPECTS BUSCANDO DISPERTAR INTERESSE": (
-        ", {nome}, da empresa {empresa}, "
-        "Nós da *GDI Informática* trabalhamos com um *Sistema de Gestão: Simples e Prático*. "
-        "Montamos a mensalidade baseada nas ferramentas que realmente for utilizar. "
-        "Valores a partir de R$ 69,90. Peça mais informações, comigo , o Glaucio. "
-        "Se não quiser mais receber informações sobre nossos serviços, envie *SAIR*."
-    ),
-    "CLIENTE QUE UTILIZA SO MAQUININHA DE CARTÃO": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do aplicativo na maquininha de cartões? Tudo certo? Algo a relatar? "
-        "Entre em contato para mais informações no (54) 9 9104 1029. "
-        "Prestamos suporte técnico rápido e ativo. "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-    "PROSPECT QUE FOI ATÉ ORÇADO, EM NEGOCIAÇÃO": (
-        ", {nome}, da empresa {empresa}, "
-        "Nós da *GDI Informática* trabalhamos com um *Sistema de Gestão: Simples e Prático*. "
-        "Já tinhamos conversado anteriormente, chegamos a falar um pouco sobre o sistema, e até foi sugerido um valor de mensalidade para usar o sistema, " 
-        "e agora temos *Novidades* e *Promoções* exclusivas para você. ""Entre em contato comigo, o Glaucio! "
-        "Mas Caso não queira mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "EMPRESAS PARCEIRAS QUE NOS INDICAM": (
-        ", {nome}, da empresa {empresa}, "
-        "Nós da *GDI Informática* reafirmamos nossa parceria e temos *Novidades* e *Promoções* "
-        "exclusivas para seus Clientes nesse novo ciclo. Ferramentas como a Emissão da NF-e, e o Cupom Eletrônico interligado com as Máquinas de Cartões."
-        "Entre em contato comigo, o Glaucio!, para mais informações."
-        "Caso não queira mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "ESCRITÓRIOS CONTÁBEIS - CONTADORES": (
-        ", {nome}, da empresa {empresa}, "
-        "Visitei seu escritório pessoalmente, e agora estamos entrando em contato novamente para apresentar uma "
-        "*Solução Prática e Simples* para seus Clientes com relação ao *Sistema de Gestão*; com um Controle de Estoque e Caixa, Além da parte Fiscal, com a Emissão da Nota Eletrônica e o Cupom Eletrônico. "
-        "Entre em contato comigo, o Glaucio! "
-        "Caso não queira mais receber esse tipo de informação, envie *SAIR*."
-    ),
-    "CLIENTES QUE UTILIZAM LIGACAO PC X SMART": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? Sabemos que utiliza a maquininha Smart, com ligação ao sistema de Emissão do Cupom. "
-        "E as vezes acontecem alguns problemas, geralmente devido a oxilação da Internet, mas agora temos a opção de ligação direta nas máquinas do Banrisul, Sicredi e Stone. "
-        "Se quiser trocar para essa nova forma, ela é bem mais em conta referente a valores mensais, peça mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna).  "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-    "APLICATIVO PROPRIO - EVOLUTI PLAY - BANRISUL": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando a do*Banrisul*, "
-        "que atendende às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com ela. "
-        "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-     "APLICATIVO PROPRIO - EVOLUTI PLAY - SICREDI": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando a do *Sicredi*, "
-        "que atendende às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico com ela. "
-        "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-     "APLICATIVO PROPRIO - EVOLUTI PLAY - STONE": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Temos a solução para ligação direta nas máquinas de cartão SMARTs, utilizando a da *Stone*, "
-        "que atendende às exigências fiscais atuais. Interligando a emissão do Cupom Eletrônico ela. "
-        "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-    "CLIENTES QUE USAM  O TEF CONVENCIONAL": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? Sabemos que utiliza o TEF na emissão de cupom eletrônico. "
-        "Às vezes surgem problemas, principalmente a questão do recebimento dos boletos,  mas agora temos a opção de ligação direta nas máquinas de cartão as SMARTs, temos com o Banrisul, Sicredi e Stone. "
-        "Se quiser trocar para essa nova forma, fale comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Caso não queira mais receber essa forma de contato, envie *SAIR*."
-    ),
-    "CLIENTES QUE USAM BASICAMENTE A NFE": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Sabemos que utiliza principalmente a Emissão de Nota Eletrônica. "
-        "Estamos sempre à disposição para ajudar. "
-        "pode falar comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Caso não queira mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "CLIENTES QUE RARAMENTE PEDEM SUPORTE": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*? "
-        "Sabemos que dificilmente precisa de ajuda. "
-        "Mas estamos prontos para ajudar, caso precisar de algo. Basta falar com o nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "CLIENTES QUE USAM MUITO POUCO": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*? "
-        "Sabemos que utiliza poucas opções e ferramentas. "
-        "Mas estamos prontos para ajudar, caso precisar de algo. Basta falar com o nosso suporte no *(55) 9119 4370* (Bruna). "
-        "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "CLIENTES INADINPLENTES": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? Algo que deseja mencionar? "
-        "Sempre estamos prontos para lhe atender e ajudar no que for possível, referente a utilização do sistema EvoluTI, E Caso precise de suporte, basta falar com o nosso Whats no *(55) 9119 4370* (Bruna). "
-        "Mas Gostaríamos de salientar aqui, a importância de manter sua mensalidade em dia, que vence sempre *Dia 05*. "
-        "Evite Transtornos para sua empresa, pois o não pagamento em DIA, ocasiona o *Bloqueio do Sistema* de forma Automática. " 
-        "E você sabia que o pagamento no *dia 05 de cada mês*, possibilita um desconto de *2%* sobre o valor? "
-        "Não deixe para depois, solicite o boleto aqui nesse Whats *(55) 9119 4370*, caso não tenha recebido ainda."
-    ),
-    "CLIENTES QUE USAM TODAS AS FERRAMENTAS": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Além de todas as opções que já utiliza, estamos sempre à disposição para ajudar. Caso precise de suporte basta falar com o nosso Whats no *(55) 9119 4370* (Bruna). "
-        "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "CLIENTES DO MEI - Fidelizando o uso do Sistema": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Além das opções que já utiliza, temos ferramentas para a parte fiscal, incluindo emissão de NF-e e o Cupom Eletrônico. e Agora com essa questão da Ligação com as maquininhas de Cartões.  "
-        "Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). Se não quiser mais receber esse tipo de contato, envie *SAIR*."
-    ),
-    "CLIENTES DO MEI - AGORA TEMOS A NFE PARA MEI": (
-        ", {nome}, da empresa {empresa}, "
-        "Como está o uso do *Sistema EvoluTI*, tudo certo? "
-        "Além das opções e ferramentas que você já utiliza, temos agora a Emissão da *Nota Eletrônica* para o Mei, direto no nosso sistema, sem precisar usar aquele direto no Site do Governo, "
-        "Pois o nosso e muito mais simples e fácil de usar. Entre em contato para mais informações comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
-         "Se não quiser mais receber esse tipo de contato, envie *SAIR*."
-    ),
-}
+# Variável global para controle do envio
+envio_ativo = threading.Event()
 
-import tkinter as tk  # caso ainda não tenha importado
-from tkinter import PhotoImage
+# Lista global com os tipos de mensagem
+tipos_mensagem = [
+    "Todos", "prospects", "pos", "em negociacao", "parceiros", "contadores","em treinamento",
+    "smart", "evolutiplay", "tef", "nfe", "não usa", "pouco suporte", "usa bem", "mei"
+]
 
-# ...
+def enviar_mensagem_com_enter(cliente, mensagem):
+    try:
+        telefone_formatado = cliente["telefone"]
+        link_mensagem_whatsapp = f'https://web.whatsapp.com/send?phone={telefone_formatado}&text={quote(mensagem)}'
+        webbrowser.open(link_mensagem_whatsapp)
+        time.sleep(20)
+        pyautogui.press('enter')
+        time.sleep(5)
+    except Exception as e:
+        print(f"Erro ao enviar para {cliente['nome']}: {e}")
 
-class WhatsAppSenderApp:
-    def __init__(self, root):
-        self.root = root
+def criar_mensagem(cliente):
+    grupo = cliente["grupo"].strip().lower()
+    nome = cliente["nome"]
+    empresa = cliente["empresa"]
+    inicio = cliente["inicio"] if cliente["inicio"] else "Indefinido"
 
-        # ÍCONE PERSONALIZADO
-        icon = PhotoImage(file="icone.png")  # ou "icone.ico"
-        self.root.iconphoto(False, icon)
+#MONTANDO A MENSAGEM PERSONALIZADA PARA TIPO\GRUPO DE CLIENTES\PROSPECTS
+def criar_mensagem(cliente):
+    grupo = cliente["grupo"].strip().lower()
+    nome = cliente["nome"]
+    empresa = cliente["empresa"]
+    inicio = cliente["inicio"] if cliente["inicio"] else "Indefinido"
 
-        self.drive = None
-        self.root.title("Envio Automático WhatsApp vfinal")
-        self.root.geometry("880x680+100+5")
+    mensagens = {
+        "em treinamento": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*? Tudo certo? Algo a relatar? "
+            "Prestamos suporte técnico rápido e ativo. Qualquer coisa, pode entrar em contato comigo, o Glaucio, "
+            "ou com nosso Suporte no *(55) 9119 4370* (Bruna). "
+            "Caso não queira mais receber essa forma de contato, envie *SAIR*."
+        ),
+        "prospects": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Nós da *GDI Informática* trabalhamos com um *Sistema de Gestão: Simples e Prático*. "
+            "Montamos a mensalidade baseada nas ferramentas que realmente for utilizar. "
+            "Valores a partir de R$ 69,90. "
+            "Se não quiser mais receber informações sobre nossos serviços e produtos, envie *SAIR*."
+        ),
+        "pos": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do aplicativo na maquininha de cartões? Tudo certo? Algo a relatar? "
+            "Entre em contato para mais informações no (54) 9 9104 1029. "
+            "Prestamos suporte técnico rápido e ativo. "
+            "Caso não queira mais receber informações, envie *SAIR*."
+        ),
+        "em negociacao": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Nós da *GDI Informática* trabalhamos com um *Sistema de Gestão: Simples e Prático*. "
+            "Já tínhamos lhe visitado anteriormente, e agora temos *Novidades* e *Promoções* exclusivas para você. "
+            "Entre em contato comigo, o Glaucio! "
+            "Caso não queira mais receber esse tipo de contato, envie *SAIR*."
+        ),
+        "parceiros": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Nós da *GDI Informática* reafirmamos nossa parceria e temos *Novidades* e *Promoções* "
+            "exclusivas para seus clientes nesse novo ciclo. "
+            "Entre em contato comigo, o Glaucio! "
+            "Caso não queira mais receber informações, envie *SAIR*."
+        ),
+        "contadores": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Visitei seu escritório pessoalmente, e estamos entrando em contato novamente para apresentar uma "
+            "solução prática e simples para seu cliente com relação ao *Sistema de Gestão*. "
+            "Entre em contato comigo, o Glaucio! "
+            "Caso não queira mais receber informações, envie *SAIR*."
+        ),
+        "smart": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*, tudo certo? Sabemos que utiliza a maquininha Smart para emissão do cupom. "
+            "Às vezes acontecem alguns problemas, mas agora temos a opção de ligação direta nas máquinas do Banrisul ou Sicredi. "
+            "Se quiser trocar para essa nova forma, fale comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
+            "Caso não queira mais receber essa forma de contato, envie *SAIR*."
+        ),
+        "evolutiplay": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*, tudo certo? "
+            "Temos a solução para ligação direta nas máquinas de cartão SMART, utilizando Banrisul, "
+            "atendendo às exigências fiscais atuais. "
+            "Entre em contato comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
+            "Caso não queira mais receber essa forma de contato, envie *SAIR*."
+        ),
+        "tef": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*, tudo certo? Sabemos que utiliza o TEF na emissão de cupom eletrônico. "
+            "Às vezes surgem problemas, mas agora temos a opção de ligação direta nas máquinas de cartão (SMART, Banrisul ou Sicredi). "
+            "Se quiser trocar para essa nova forma, fale comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
+            "Caso não queira mais receber essa forma de contato, envie *SAIR*."
+        ),
+        "nfe": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*, tudo certo? "
+            "Sabemos que utiliza principalmente a emissão de nota eletrônica. "
+            "Estamos sempre à disposição para ajudar. "
+            "Fale comigo, o Glaucio, ou com nosso suporte no *(55) 9119 4370* (Bruna). "
+            "Caso não queira mais receber esse tipo de contato, envie *SAIR*."
+        ),
+        "pouco suporte": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*? "
+            "Sabemos que dificilmente precisa de ajuda. "
+            "Mas estamos prontos para ajudar, caso precisar de algo. "
+            "Se não quiser mais receber informações, envie *SAIR*."
+        ),    
+        "não usa": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*? "
+            "Sabemos que utiliza poucas opções e ferramentas. "
+            "Estamos prontos para ajudar ou implementar novos processos conforme necessário. "
+            "Se não quiser mais receber informações, envie *SAIR*."
+        ),
+        "usa bem": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*, tudo certo? "
+            "Além de todas as opções que já utiliza, estamos sempre à disposição para ajudar. "
+            "Se não quiser mais receber informações, envie *SAIR*."
+        ),
+        "mei": (
+            f"{inicio}, {nome}, da empresa {empresa}, "
+            "Como está o uso do *Sistema EvoluTI*, tudo certo? "
+            "Além das opções que já utiliza, temos suporte para a parte fiscal, incluindo emissão de NF-e, cupom eletrônico e TEF. "
+            "Se não quiser mais receber informações, envie *SAIR*."
+        ),
+    }
 
-        style = ttk.Style()
-        style.configure("Treeview", font=("Helvetica", 8, "bold"))
-        style.configure("Treeview.Heading", font=("Helvetica", 10, "bold"))
+    return mensagens.get(grupo, f"Olá {nome}, da empresa {empresa}, Somos da GDI INFORMATICA, um Sistema de Gestão: *Simples e Prático!*")
 
-    
+def ler_dados_planilha(pagina_selecionada, grupo_selecionado):
+    try:
+        workbook = openpyxl.load_workbook('Mala_Whats.xlsx')
+        aba = workbook[pagina_selecionada]
+        clientes = []
+        for linha in aba.iter_rows(min_row=2, values_only=True):
+            if linha[2]:
+                cliente = {
+                    "empresa": linha[0],
+                    "nome": linha[1],
+                    "telefone": linha[2],
+                    "inicio": linha[3] if linha[3] else "Indefinido",
+                    "grupo": linha[4].strip().lower() if linha[4] else "indefinido"
+                }
+                if grupo_selecionado.lower() == "todos" or cliente["grupo"] == grupo_selecionado.lower():
+                    clientes.append(cliente)
+        return clientes
+    except Exception as e:
+        print(f"Erro ao ler a planilha: {e}")
+        return []
 
-        # Evento para iniciar/parar o envio
-        
-        self.enviando = False
-        self.envio_ativo = threading.Event()
+# === Interface Gráfica ===
+janela = tk.Tk()
+janela.title('Envio Automático de Mensagens WhatsApp')
+janela.attributes('-fullscreen', True)
 
-        self.df = None
-        self.filtered_df = None
+# Controle de tela cheia
+tela_cheia = True
 
-        # Topo - Seleção do arquivo Excel e planilha
-        frame_top = ttk.Frame(root, padding=10)
-        frame_top.pack(fill='x')
+def alternar_tela_cheia():
+    global tela_cheia
+    tela_cheia = not tela_cheia
+    janela.attributes('-fullscreen', tela_cheia)
 
-        ttk.Label(frame_top, text="Arquivo Excel:").pack(side='left')
-        self.entry_file = ttk.Entry(frame_top, width=40)
-        self.entry_file.pack(side='left', padx=5)
-        ttk.Button(frame_top, text="Selecionar", command=self.select_file).pack(side='left')
+def sair_tela_cheia(event=None):
+    global tela_cheia
+    tela_cheia = False
+    janela.attributes('-fullscreen', False)
 
-        ttk.Label(frame_top, text="Planilha:").pack(side='left', padx=(20, 5))
-        self.combo_sheet = ttk.Combobox(frame_top, state='readonly', width=20)
-        self.combo_sheet.pack(side='left')
-        self.combo_sheet.bind("<<ComboboxSelected>>", self.sheet_selected)
+# Dados do Excel
+abas = openpyxl.load_workbook('Mala_Whats.xlsx').sheetnames
+pagina_var = tk.StringVar(value=abas[0])
+grupo_var = tk.StringVar(value="Todos")
 
-        # Meio - Tipo de mensagem e Grupo/Sublista
-        frame_middle = ttk.Frame(root, padding=10)
-        frame_middle.pack(fill='x')
+# Frame de seleção
+frame_selecao = tk.Frame(janela, pady=10)
+frame_selecao.pack()
 
-        tk.Label(frame_middle, text="Selecione o Tipo de Escrita da Mensagem:", font=("TkDefaultFont", 10, "bold")).pack(side='left')
-        self.combo_msg_type = ttk.Combobox(frame_middle, state='readonly', width=50)
-        self.combo_msg_type.pack(side='left', padx=5)
-        self.combo_msg_type['values'] = sorted(mensagens.keys())
-        self.combo_msg_type.bind("<<ComboboxSelected>>", self.edit_template)
+tk.Label(frame_selecao, text="Página:", font=('Arial', 12, 'bold')).grid(row=0, column=0, padx=10, pady=5, sticky="w")
+tk.OptionMenu(frame_selecao, pagina_var, *abas).grid(row=0, column=1, padx=10, pady=5)
 
-        ttk.Label(frame_middle, text="Grupo/Categoria:").pack(side='left', padx=(20, 5))
-        self.combo_group = ttk.Combobox(frame_middle, state='readonly', width=20)
-        self.combo_group.pack(side='left', padx=5)
+tk.Label(frame_selecao, text="Tipo de Mensagem:", font=('Arial', 12, 'bold')).grid(row=0, column=2, padx=10, pady=5, sticky="w")
+tk.OptionMenu(frame_selecao, grupo_var, *tipos_mensagem).grid(row=0, column=3, padx=10, pady=5)
 
-       
-        # Edição de template
-        frame_edit = ttk.Frame(root, padding=50)
-        frame_edit.pack(fill='x')
+# Frame da Treeview
+frame = ttk.Frame(janela, padding=10)
+frame.pack(fill=tk.BOTH, expand=True)
 
-# Título acima do campo de texto
-        tk.Label(
-            frame_edit,
-            text="Modelo da Mensagem a ser Enviada: PODE EDITAR ANTES DE CARREGAR TELEFONES",
-            font=("Arial", 12, "bold"),
-            anchor='w'
-        ).pack(fill='x', padx=5, pady=(0, 5))
+tree = ttk.Treeview(frame, columns=("Empresa", "Telefone", "Mensagem"), show="headings")
+tree.heading("Empresa", text="Empresa")
+tree.heading("Telefone", text="Telefone")
+tree.heading("Mensagem", text="Mensagem")
 
-# Campo de texto para o template
-        self.txt_template = tk.Text(frame_edit, height=5, wrap='word')
-        self.txt_template.pack(fill='x', expand=True)
+tree.column("Empresa", width=200, anchor="w", stretch=False)
+tree.column("Telefone", width=150, anchor="center", stretch=False)
+tree.column("Mensagem", width=1200, anchor="w", stretch=True)
 
+tree.pack(fill=tk.BOTH, expand=True)
 
-        # Treeview com as mensagens a serem disparadas
-        frame_bottom = ttk.Frame(root, padding=10)
-        frame_bottom.pack(fill='both', expand=True)
+def ajustar_colunas(event):
+    largura_total = tree.winfo_width()
+    tree.column("Empresa", width=int(largura_total * 0.15))
+    tree.column("Telefone", width=int(largura_total * 0.15))
+    tree.column("Mensagem", width=int(largura_total * 0.70))
 
-        self.tree = ttk.Treeview(
-            frame_bottom,
-            columns=('Telefone', 'Mensagem'),
-            show='headings'
-        )
-        self.tree.heading('Telefone', text='Telefones')
-        self.tree.heading('Mensagem', text='Mensagens a serem Disparadas')
-        self.tree.column('Telefone', width=80)
-        self.tree.column('Mensagem', width=1200)
-        self.tree.pack(fill='both', expand=True)
+tree.bind("<Configure>", ajustar_colunas)
 
-        # Botões de Ação
-        frame_actions = ttk.Frame(root, padding=10)
-        frame_actions.pack(fill='x')
+# Contagem
 
-        tk.Button(
-            frame_actions,
-            text="EDITAR",
-            command=self.edit_message,
-            bg="#b34b00",  # azul forte
-            fg="white"
-        ).pack(side='left', padx=5)
-        
+label_contagem = tk.Label(janela, text="Total de Mensagens: 0", font=('Arial', 12, 'bold'))
+label_contagem.pack(pady=5)
 
-        # BOTAO EXCLUIR COM A FUNÇAO DE USAR A TECLA DELETE
-        tk.Button(
-            frame_actions,
-            text="EXCLUIR - Delete",
-            command=self.delete_message,
-            bg="#dc3545",
-            fg="white"
-        ).pack(side='left', padx=5)
+def atualizar_contagem():
+    total = len(tree.get_children())
+    label_contagem.config(text=f"Total de Mensagens: {total}")
 
-        # atalho Delete
-        frame_actions.bind_all("<Delete>", lambda event: self.delete_message())         
-        
-        #tk.Button(
-            #frame_actions,
-            #text="EXCLUIR",
-            #command=self.delete_message,
-            #bg="#dc3545",  # vermelho
-            #fg="white"
-        #).pack(side='left', padx=5)
+# Carregar dados
+def carregar_dados():
+    for row in tree.get_children():
+        tree.delete(row)
+    try:
+        workbook = openpyxl.load_workbook('Mala_Whats.xlsx')
+        aba = workbook[pagina_var.get()]
+        tipo_selecionado = grupo_var.get().strip().lower()
+        for linha in aba.iter_rows(min_row=2, values_only=True):
+            if linha[2]:
+                tipo_mensagem = linha[4].strip().lower() if linha[4] else "indefinido"
+                if tipo_selecionado == "todos" or tipo_mensagem == tipo_selecionado:
+                    mensagem = criar_mensagem({
+                        "empresa": linha[0],
+                        "nome": linha[1],
+                        "telefone": linha[2],
+                        "inicio": linha[3] if linha[3] else "Indefinido",
+                        "grupo": linha[4] if linha[4] else "indefinido"
+                    })
+                    tree.insert("", tk.END, values=(linha[1], linha[2], mensagem))
+        atualizar_contagem()
+    except Exception as e:
+        print(f"Erro ao carregar dados: {e}")
 
-        tk.Button(
-            frame_actions,
-            text="LIMPAR Mensagens",
-            command=self.cancel_operation,
-            bg="#ffc107",  # amarelo
-            fg="black"
-        ).pack(side='left', padx=5)
-
-        tk.Button(
-            frame_actions,
-            text="Carregar TELEFONES",
-            command=self.load_messages,
-            bg="#0056b3",
-            fg="white"
-        ).pack(side='left', padx=10)
-
-        # Botão ENVIAR agora chama iniciar_envio_thread
-        tk.Button(
-            frame_actions,
-            text="DISPARAR Mensagens",
-            command=self.iniciar_envio_thread,
-            bg="#28a745",  # verde
-            fg="white"
-        ).pack(side='left', padx=5)
-
-        tk.Button(
-            frame_actions,
-            text="PAUSAR Envio",
-            command=self.pausar_envio,
-            bg="#ff8000",  # Laranja
-            fg="white"
-        ).pack(side='left', padx=5)
-
-        tk.Button(
-            frame_actions,
-            text="Fechar",
-            command=root.destroy,  # ou self.root.destroy se root estiver como self.root
-            bg="#6c757d",  # cinza
-            fg="white"
-        ).pack(side='left', padx=5)
-
-        # Contador de mensagens carregadas
-        self.label_info = ttk.Label(root, text="Nenhuma Mensagem Carregada.")
-        self.label_info.pack(anchor='w', padx=10)
-
-    def pausar_envio(self):
-        self.envio_ativo.clear()  # Desativa o sinal para pausar o envio
-        self.enviando = False
-        print("Envio pausado manualmente.")
-        messagebox.showerror("Disparo PAUSADO"," Clicle Novamente no botão 'DISPARAR MENSAGENS' para Retomar o Envio.")
-
-    def select_file(self):
-    # Verifica se já há um caminho no campo de entrada
-        current_path = self.entry_file.get()
-    
-    # Se o caminho já existe e o arquivo está presente, carrega diretamente
-        if current_path and os.path.isfile(current_path):
-            self.load_sheets(current_path)
-            return
-
-    # Caso contrário, abre o diálogo de seleção de arquivo
-        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
-        if file_path:
-            self.entry_file.delete(0, tk.END)
-            self.entry_file.insert(0, file_path)
-            self.load_sheets(file_path)
-
-    def load_sheets(self, filepath):
-        try:
-            xls = pd.ExcelFile(filepath)
-            self.combo_sheet['values'] = xls.sheet_names
-            if xls.sheet_names:
-                self.combo_sheet.current(0)
-                self.sheet_selected()
-        except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao abrir arquivo Excel:\n{e}")
-
-    def sheet_selected(self, event=None):
-        filepath = self.entry_file.get()
-        sheet = self.combo_sheet.get()
-        try:
-            # Carrega o DataFrame e padroniza colunas em minúsculo
-            self.df = pd.read_excel(filepath, sheet_name=sheet)
-            self.df.columns = [str(col).strip().lower() for col in self.df.columns]
-            self.update_group_list()
-        except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao carregar a planilha:\n{e}")
-
-    def update_group_list(self):
-        # Preenche Combobox de Grupo/Sublista a partir da coluna 'grupo'
-        if self.df is not None and 'grupo' in self.df.columns:
-            grupos = sorted(self.df['grupo'].dropna().unique())
-            self.combo_group['values'] = grupos
-            if grupos:
-                self.combo_group.current(0)
-
-    def edit_template(self, event=None):
-        tipo = self.combo_msg_type.get()
-        template = mensagens.get(tipo, "")
-        self.txt_template.delete('1.0', tk.END)
-        self.txt_template.insert(tk.END, template)
-
-    def load_messages(self):
-        if self.df is None:
-            messagebox.showwarning("Aviso", "Carregue um Arquivo do Excel Primeiro.")
-            return
-
-        tipo = self.combo_msg_type.get()
-        grupo = self.combo_group.get()
-        if not tipo or not grupo:
-            messagebox.showwarning("Aviso", "Selecione o Tipo de Mensagem a ser Enviada.")
-            return
-
-        if 'grupo' not in self.df.columns:
-            messagebox.showerror("Erro", "A planilha não possui a coluna 'grupo'.")
-            return
-
-        # Filtra clientes do grupo selecionado
-        self.filtered_df = self.df[self.df['grupo'] == grupo].copy()
-
-        # Obtém template editado
-        template = self.txt_template.get("1.0", tk.END).strip()
-
-        # Limpa treeview
-        self.tree.delete(*self.tree.get_children())
-        count = 0
-
-        for _, row in self.filtered_df.iterrows():
-            nome = str(row.get('nome', 'Cliente')).strip()
-            empresa = str(row.get('empresa', 'Empresa')).strip()
-            telefone = str(row.get('telefone', '')).strip()
-            inicio = str(row.get('inicio', '')).strip()
-
-            # Monta mensagem: <início> + <template>
-            msg = f"{inicio}{template.format(nome=nome, empresa=empresa)}".strip()
-            self.tree.insert('', tk.END, values=(telefone, msg))
-            count += 1
-
-        self.label_info.config(text=f"Total de mensagens carregadas a DISPARAR: {count}")
-
-    def edit_message(self):
-        selected = self.tree.selection()
-        if not selected:
-            messagebox.showinfo("Editar", "Selecione uma Mensagem para Editar.")
-            return
-
-        item = selected[0]
-        contato, mensagem = self.tree.item(item, 'values')
-
+# Editar mensagem
+def editar_mensagem():
+    selected_item = tree.selection()
+    if selected_item:
+        item = tree.item(selected_item)
+        top = tk.Toplevel(janela)
+        top.title("Editar Mensagem")
+        tk.Label(top, text="Mensagem:").pack()
+        texto = tk.Text(top, height=15, width=120)
+        texto.insert(tk.END, item['values'][2])
+        texto.pack()
         def salvar():
-            nova = txt.get("1.0", tk.END).strip()
-            self.tree.item(item, values=(contato, nova))
-            edit_window.destroy()
+            tree.item(selected_item, values=(item['values'][0], item['values'][1], texto.get("1.0", tk.END).strip()))
+            top.destroy()
+        tk.Button(top, text="Salvar", command=salvar).pack()
 
-        edit_window = tk.Toplevel(self.root)
-        edit_window.title("Editando Mensagem")
-        txt = tk.Text(edit_window, height=10, width=60)
-        txt.pack(padx=10, pady=10)
-        txt.insert('1.0', mensagem)
-        ttk.Button(edit_window, text="Salvar", command=salvar).pack(pady=5)
+# Envio de mensagens
+def iniciar_envio_thread():
+    envio_ativo.set()
+    dados_envio = []
 
-    def delete_message(self):
-        selected = self.tree.selection()
-        if not selected:
-            messagebox.showinfo("Excluir", "Selecione uma Mensagem para Excluir.")
-            return
+    for item in tree.get_children():
+        nome, telefone, mensagem = tree.item(item, "values")
+        dados_envio.append({
+            "nome": nome,
+            "telefone": telefone,
+            "mensagem": mensagem
+        })
 
-        for item in selected:
-            self.tree.delete(item)
+    def enviar_mensagens():
+        for cliente in dados_envio:
+            if not envio_ativo.is_set():
+                print("Envio cancelado.")
+                break
+            enviar_mensagem_com_enter(cliente, cliente["mensagem"])
+            time.sleep(105)  # Tempo de espera entre mensagens
+        print("Envio concluído!")
 
-        total_restante = len(self.tree.get_children())
-        self.label_info.config(text=f"Total de mensagens: {total_restante}")
+    threading.Thread(target=enviar_mensagens, daemon=True).start()
 
-    def cancel_operation(self):
-        self.tree.delete(*self.tree.get_children())
-        self.txt_template.delete('1.0', tk.END)
-        self.label_info.config(text="Operação cancelada. Nenhuma mensagem carregada.")
+def cancelar_envio():
+    envio_ativo.clear()
+    print("Envio cancelado!")
 
-    def enviar_mensagem_com_enter(self, cliente):
-        try:
-            telefone_formatado = cliente["telefone"]
-            link_mensagem_whatsapp = f'https://web.whatsapp.com/send?phone={telefone_formatado}&text={quote(cliente["mensagem"])}'
-            webbrowser.open(link_mensagem_whatsapp)
-            
-            time.sleep(10)
-            pyautogui.press('enter')
-            time.sleep(5)
-        except Exception as e:
-            print(f"Erro ao enviar para {cliente['telefone']}: {e}")
-            
-# INICIAR O ENVIOU DAS MENSAGENS....
-    def iniciar_envio_thread(self):
-        if self.enviando:
-            self.label_info.config(text="O envio já está em andamento.")
-            return
+def deletar_mensagem():
+    selected_item = tree.selection()
+    if selected_item:
+        tree.delete(selected_item)
+        atualizar_contagem()
 
-        self.enviando = True
-        self.envio_ativo.set()
+# Frame dos Botões
+frame_botoes = tk.Frame(janela, pady=10)
+frame_botoes.pack()
 
-        def enviar_mensagens():
-            itens = self.tree.get_children()
+tk.Button(frame_botoes, text="Carregar Dados", command=carregar_dados, bg="blue", fg="white", width=15).grid(row=0, column=0, padx=8, pady=5)
+tk.Button(frame_botoes, text="Editar Mensagem", command=editar_mensagem, bg="gray", fg="white", width=15).grid(row=0, column=1, padx=8, pady=5)
+tk.Button(frame_botoes, text="Iniciar Envio", command=iniciar_envio_thread, bg="green", fg="white", width=15).grid(row=0, column=2, padx=8, pady=5)
+tk.Button(frame_botoes, text="Cancelar Envio", command=cancelar_envio, bg="red", fg="white", width=15).grid(row=0, column=3, padx=8, pady=5)
+tk.Button(frame_botoes, text="Excluir Mensagem", command=deletar_mensagem, bg="orange", fg="black", width=15).grid(row=0, column=4, padx=8, pady=5)
+tk.Button(frame_botoes, text="Fechar", command=janela.destroy, bg="black", fg="white", width=15).grid(row=0, column=5, padx=8, pady=5)
 
-            for i, item in enumerate(itens):
-                if not self.envio_ativo.is_set():
-                    break
+# 🔥 Atalho ESC para sair do modo tela cheia
+janela.bind("<Escape>", sair_tela_cheia)
 
-                contato, mensagem = self.tree.item(item, "values")
-                cliente = {"telefone": contato, "mensagem": mensagem}
-
-                self.enviar_mensagem_com_enter(cliente)
-
-                self.tree.delete(item)  # Remove a linha da Treeview após o envio
-
-                total_restante = len(self.tree.get_children())
-                self.label_info.config(text=f"Mensagens restantes a DISPARAR: {total_restante}")
-
-        # Só espera se ainda tiver mais mensagens após esta
-                if i < len(itens) - 1:
-                    time.sleep(110)
-
-            self.enviando = False
-
-    # Agendar a exibição da mensagem e o som na thread principal
-            self.root.after(0, self.finalizar_envio)
-
-        thread = threading.Thread(target=enviar_mensagens, daemon=True)
-        thread.start()
-
-    def finalizar_envio(self):
-        self.label_info.config(text="Envio concluído.")
-        
-        # SOM NO ENVIOU TOTAL DAS MENSAGENS
-        winsound.Beep(frequency=1000, duration=800)  # frequência em Hz, duração em ms
-        messagebox.showinfo("Finalizado", "Todas as Mensagens foram Enviadas com Sucesso.")
-
-
-    def parar_envio(self):
-        self.envio_ativo.clear()
-        print("Envio interrompido.")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = WhatsAppSenderApp(root)
-    root.mainloop()
+janela.mainloop()
